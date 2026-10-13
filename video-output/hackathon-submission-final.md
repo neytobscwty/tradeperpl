@@ -4,9 +4,10 @@
 
 **Onchain Finance & Trading**
 
-## Sponsor bounty
+## Sponsor bounties
 
-**Perpl: Best Use of Perpl's API**
+- **Perpl: Best Use of Perpl's API**
+- **Perpl: Best Analytics / Risk Tool**
 
 ## Project name
 
@@ -15,6 +16,10 @@ TradePerpl
 ## Tagline
 
 Trade Perpl from Telegram. Watch markets, set alerts, place orders and manage risk without leaving the chat.
+
+## Short description
+
+A mobile-first Telegram terminal for Perpl with live markets, order execution, position management, alerts and practical risk checks on Monad.
 
 ## Project description
 
@@ -56,6 +61,16 @@ Network integration:
 
 Timur, solo builder. I designed the product, built the Telegram interface, integrated Perpl, tested the trading flow and deployed the live bot.
 
+## Perpl bounty fit
+
+### Best Use of Perpl's API
+
+TradePerpl uses Perpl for the complete trading loop, not only market data. REST provides account and market snapshots, while an authenticated WebSocket handles order submission and the live order, fill and position events used to confirm the real outcome. The bot supports market, limit and post-only orders, leverage, take-profit, stop-loss, cancellations and position closes.
+
+### Best Analytics / Risk Tool
+
+TradePerpl turns Perpl account and market data into quick risk context inside Telegram. Before confirmation it shows the latest quote, available balance, required margin, leverage, spread, slippage, expected fees, liquidation level and take-profit or stop-loss outcomes. Positions include funding and APR context, while portfolio, order and alert views keep the user informed after execution.
+
 ## Why I built it
 
 Telegram is already where many crypto traders follow markets and receive alerts. The actual trade still happens somewhere else. TradePerpl closes that gap.
@@ -69,7 +84,7 @@ OpenAI Codex helped with code generation, debugging, documentation and UI iterat
 ## Links to complete
 
 - Live bot: https://t.me/TradePerplBot
-- Source code: [ADD PUBLIC OR JUDGE-SHARED REPOSITORY URL]
+- Source code: https://github.com/neytobscwty/tradeperpl
 - Technical demo: [ADD UNLISTED YOUTUBE URL]
 - Pitch: [ADD UNLISTED YOUTUBE URL]
 - Transaction evidence: [ADD MONAD EXPLORER URL IF AVAILABLE]
@@ -88,7 +103,7 @@ Built by Timur for the Monad Metropolis Hackathon.
 
 Bot: https://t.me/TradePerplBot
 
-Source: [ADD URL]
+Source: https://github.com/neytobscwty/tradeperpl
 
 ## YouTube pitch
 
@@ -104,15 +119,16 @@ Built by Timur for the Monad Metropolis Hackathon.
 
 Bot: https://t.me/TradePerplBot
 
-Source: [ADD URL]
+Source: https://github.com/neytobscwty/tradeperpl
 
 ## Final checklist
 
 - Select **Onchain Finance & Trading**.
 - Add **Perpl: Best Use of Perpl's API**.
+- Add **Perpl: Best Analytics / Risk Tool**.
 - Use `assets/tradeperpl-avatar.png` as the logo.
 - Upload the technical demo and pitch as two separate Unlisted YouTube videos.
 - Paste each URL into its matching field.
-- Share the repository with `metropolis@hackathon.monad.xyz` if it is private.
+- Use the public repository: https://github.com/neytobscwty/tradeperpl
 - Add a real Monad or Perpl transaction link if the form has a suitable field.
 - Check the public video permission before submitting.

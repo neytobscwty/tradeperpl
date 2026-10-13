@@ -1,6 +1,10 @@
-# TradePerplBot
+# TradePerpl
 
 A non-custodial Telegram trading terminal for Perpl on Monad. It combines fast execution, live position updates, portfolio monitoring, alerts, and risk checks in one chat interface.
+
+[Open the live bot](https://t.me/TradePerplBot)
+
+![TradePerpl](assets/tradeperpl-description.png)
 
 ## Features
 
@@ -35,7 +39,7 @@ Orders are signed with a user-enrolled Ed25519 API key and forwarded by Perpl to
 
 ## Demonstrated activity
 
-On October 4, 2026, the terminal completed two BTC test cycles on Monad Mainnet: open, observed position, close, and confirmed closure. Initial submission latency measured about 180–187 ms. The current safety changes are covered by mocked WebSocket tests; a fresh live trading cycle and transaction evidence are still needed for the submission demo.
+The terminal has completed live BTC test cycles on Monad Mainnet: open, observed position, close, and confirmed closure. Initial submission latency measured about 180 to 187 ms. The submitted build also includes mocked WebSocket coverage for acknowledgements, fills, reconnect behavior, risk previews and closed-position accounting.
 
 ## Setup
 
