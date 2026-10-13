@@ -12,6 +12,8 @@ export type Market = {
     size_decimals: number;
     maintenance_margin: number;
     initial_margin?: number;
+    maker_fee?: number;
+    maker_fees?: number[];
     taker_fee?: number;
     taker_fees?: number[];
   };
@@ -39,7 +41,7 @@ type Context = { markets: Market[] };
 type TickerResponse = { d: Record<string, MarketState> };
 export type Candle = { t: number; o: number; c: number; h: number; l: number; v: string; n: number };
 type CandleResponse = { d: Candle[] };
-type BookResponse = {
+export type BookResponse = {
   bid: Array<{ p: number; s: number; o: number }>;
   ask: Array<{ p: number; s: number; o: number }>;
 };
@@ -47,6 +49,10 @@ type BookResponse = {
 export class PerplClient {
   private context: Context | null = null;
   private contextAt = 0;
+  private tickerCache: { value: Record<string, MarketState>; at: number } | null = null;
+  private tickerRequest: Promise<Record<string, MarketState>> | null = null;
+  private bookCache = new Map<string, { value: BookResponse; at: number }>();
+  private bookRequests = new Map<string, Promise<BookResponse>>();
 
   constructor(private readonly baseUrl: string) {}
 
@@ -81,18 +87,27 @@ export class PerplClient {
   }
 
   async ticker(market: Market): Promise<MarketState> {
-    const payload = await this.get<TickerResponse>(`/v1/market-data/${market.id}/ticker`);
-    const state = payload.d[String(market.id)];
+    const state = (await this.tickers())[String(market.id)];
     if (!state) throw new Error(`No ticker available for ${market.symbol}`);
     return state;
   }
 
   async tickers(): Promise<Record<string, MarketState>> {
-    return (await this.get<TickerResponse>("/v1/market-data/ticker")).d;
+    if (this.tickerCache && Date.now() - this.tickerCache.at < 1_500) return this.tickerCache.value;
+    if (!this.tickerRequest) {
+      this.tickerRequest = this.get<TickerResponse>("/v1/market-data/ticker")
+        .then(payload => {
+          this.tickerCache = { value: payload.d, at: Date.now() };
+          return payload.d;
+        })
+        .finally(() => { this.tickerRequest = null; });
+    }
+    return this.tickerRequest;
   }
 
-  async candles(market: Market, resolution = 3600, hours = 24): Promise<Candle[]> {
-    const to = Date.now();
+  async candles(market: Market, resolution = 3600, hours = 24, endTime = Date.now()): Promise<Candle[]> {
+      const step = resolution * 1000;
+      const to = Math.floor(endTime / step) * step;
     const from = to - hours * 60 * 60 * 1000;
     const payload = await this.get<CandleResponse>(
       `/v1/market-data/${market.id}/candles/${resolution}/${from}-${to}`,
@@ -101,7 +116,15 @@ export class PerplClient {
   }
 
   async book(market: Market, levels = 5): Promise<BookResponse> {
-    return this.get<BookResponse>(`/v1/market-data/${market.id}/book?levels=${levels}`);
+    const key = `${market.id}:${levels}`, cached = this.bookCache.get(key);
+    if (cached && Date.now() - cached.at < 1_500) return cached.value;
+    const existing = this.bookRequests.get(key);
+    if (existing) return existing;
+    const request = this.get<BookResponse>(`/v1/market-data/${market.id}/book?levels=${levels}`)
+      .then(value => { this.bookCache.set(key, { value, at: Date.now() }); return value; })
+      .finally(() => { this.bookRequests.delete(key); });
+    this.bookRequests.set(key, request);
+    return request;
   }
 }
 
@@ -114,13 +137,16 @@ export function scaled(value: number | string | undefined, decimals: number): nu
 }
 
 export function money(value: number): string {
+  const magnitude = Math.abs(value);
+  const digits = magnitude >= 100 ? 0 : magnitude >= 10 ? 1 : magnitude >= 1 ? 2 : magnitude >= 0.01 ? 5 : 6;
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-    maximumFractionDigits: value >= 100 ? 2 : value >= 1 ? 4 : 6,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: digits,
   }).format(value);
 }
 
 export function compact(value: number): string {
-  return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 2 }).format(value);
+  return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(value);
 }

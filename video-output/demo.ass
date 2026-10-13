@@ -1,0 +1,49 @@
+[Script Info]
+Title: TradePerpl Technical Demo
+ScriptType: v4.00+
+PlayResX: 1920
+PlayResY: 1080
+WrapStyle: 2
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Eyebrow,Segoe UI Semibold,25,&H00FC5C7C,&H00FFFFFF,&H00080D18,&H00000000,-1,0,0,0,100,100,2,0,1,0,0,7,790,90,286,1
+Style: Title,Segoe UI Semibold,61,&H00FFFFFF,&H00FFFFFF,&H00080D18,&H00000000,-1,0,0,0,100,100,0,0,1,0,0,7,790,90,330,1
+Style: Body,Segoe UI,34,&H00D9C1B9,&H00FFFFFF,&H00080D18,&H00000000,0,0,0,0,100,100,0,0,1,0,0,7,790,100,430,1
+Style: Meta,Segoe UI Semibold,21,&H008D95AB,&H00FFFFFF,&H00080D18,&H00000000,-1,0,0,0,100,100,1,0,1,0,0,7,790,90,930,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.00,0:00:09.00,Eyebrow,,0,0,0,,TECHNICAL DEMO
+Dialogue: 0,0:00:00.00,0:00:09.00,Title,,0,0,0,,TRADEPERPL
+Dialogue: 0,0:00:00.00,0:00:09.00,Body,,0,0,0,,Perpl trading, inside Telegram.\NLive on Monad Mainnet.
+Dialogue: 0,0:00:00.00,0:01:36.60,Meta,,0,0,0,,MONAD MAINNET   •   PERPL API   •   TELEGRAM
+
+Dialogue: 0,0:00:09.00,0:00:21.00,Eyebrow,,0,0,0,,STAY INFORMED
+Dialogue: 0,0:00:09.00,0:00:21.00,Title,,0,0,0,,PRICE ALERTS
+Dialogue: 0,0:00:09.00,0:00:21.00,Body,,0,0,0,,Create and manage alerts without\Nleaving the chat.
+
+Dialogue: 0,0:00:21.00,0:00:34.00,Eyebrow,,0,0,0,,ONE CHAT TERMINAL
+Dialogue: 0,0:00:21.00,0:00:34.00,Title,,0,0,0,,EVERYTHING CLOSE
+Dialogue: 0,0:00:21.00,0:00:34.00,Body,,0,0,0,,Markets, portfolio, positions and\Nsettings in a familiar interface.
+
+Dialogue: 0,0:00:34.00,0:00:50.00,Eyebrow,,0,0,0,,LIVE MARKET CONTEXT
+Dialogue: 0,0:00:34.00,0:00:50.00,Title,,0,0,0,,SEE BEFORE YOU TRADE
+Dialogue: 0,0:00:34.00,0:00:50.00,Body,,0,0,0,,Charts, mark price, funding and the\Nlive order book load before entry.
+
+Dialogue: 0,0:00:50.00,0:01:10.00,Eyebrow,,0,0,0,,GUIDED EXECUTION
+Dialogue: 0,0:00:50.00,0:01:10.00,Title,,0,0,0,,BUILD THE ORDER
+Dialogue: 0,0:00:50.00,0:01:10.00,Body,,0,0,0,,Choose direction, leverage, size and\Ntype. Add take-profit and stop-loss.\NConfirm only when every detail is right.
+
+Dialogue: 0,0:01:10.00,0:01:24.00,Eyebrow,,0,0,0,,REAL-TIME STATUS
+Dialogue: 0,0:01:10.00,0:01:24.00,Title,,0,0,0,,KNOW WHAT FILLED
+Dialogue: 0,0:01:10.00,0:01:24.00,Body,,0,0,0,,Perpl WebSocket updates confirm orders,\Nfills and open positions in the chat.
+
+Dialogue: 0,0:01:24.00,0:01:33.00,Eyebrow,,0,0,0,,POSITION CONTROL
+Dialogue: 0,0:01:24.00,0:01:33.00,Title,,0,0,0,,MANAGE RISK
+Dialogue: 0,0:01:24.00,0:01:33.00,Body,,0,0,0,,Review active orders, cancel TP / SL\Nand close the position from Telegram.
+
+Dialogue: 0,0:01:33.00,0:01:36.60,Eyebrow,,0,0,0,,TRADEPERPL
+Dialogue: 0,0:01:33.00,0:01:36.60,Title,,0,0,0,,TRADING, UNBUNDLED
+Dialogue: 0,0:01:33.00,0:01:36.60,Body,,0,0,0,,A focused mobile layer for Perpl\Non Monad.

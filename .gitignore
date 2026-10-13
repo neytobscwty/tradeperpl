@@ -2,4 +2,12 @@ node_modules/
 dist/
 .env
 *.log
+.test-tmp/
+video-output/.deps/
+video-output/frames/
+video-output/timelines/
+video-output/*.mp4
+video-output/*.jpg
+video-output/*.wav
+video-contact-*.jpg
 

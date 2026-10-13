@@ -10,6 +10,7 @@ A non-custodial Telegram trading terminal for Perpl on Monad. It combines fast e
 - Idempotent request IDs, reconnects, and sequence-gap recovery
 - Portfolio, positions, order history, markets, funding, books, and risk scores
 - Balance, margin, leverage, spread, slippage, and fee checks
+- Fresh quote and margin checks at confirmation; duplicate submit/close protection
 - AES-256-GCM encryption for stored API credentials
 
 ## Architecture
@@ -34,7 +35,7 @@ Orders are signed with a user-enrolled Ed25519 API key and forwarded by Perpl to
 
 ## Demonstrated activity
 
-On October 4, 2026, the terminal completed two BTC test cycles on Monad Mainnet: open, observed position, close, and confirmed closure. Initial submission latency measured about 180–187 ms. Transaction hashes and the final WebSocket latency report will be added before submission.
+On October 4, 2026, the terminal completed two BTC test cycles on Monad Mainnet: open, observed position, close, and confirmed closure. Initial submission latency measured about 180–187 ms. The current safety changes are covered by mocked WebSocket tests; a fresh live trading cycle and transaction evidence are still needed for the submission demo.
 
 ## Setup
 
@@ -44,6 +45,7 @@ Node.js 22 or newer is required.
 npm install
 cp .env.example .env
 npm run typecheck
+npm test
 npm start
 ```
 
@@ -63,8 +65,18 @@ TELEGRAM_PROXY=
 - The bot never requests a wallet private key or seed phrase.
 - API secrets are encrypted before being written to disk.
 - `/connect` messages are deleted immediately.
+- Group-chat `/connect` messages are deleted when Telegram grants permission; users are told to revoke a key if it remains visible.
 - API keys are revocable and cannot withdraw collateral.
 - Trading requires order forwarding and explicit Telegram confirmation.
+
+## Demo checklist
+
+1. Connect a dedicated Perpl API key in a private chat and verify the wallet address.
+2. Show live markets, risk board, portfolio, positions, and a price alert.
+3. Place a small order, verify it in Orders and Positions, then close it.
+4. Capture the corresponding Perpl order and Monad transaction evidence.
+
+Do not use a production account for the live demo. If a WebSocket disconnects while an order is pending, the bot reports the outcome as unconfirmed and asks the user to inspect Orders and Positions before retrying.
 
 ## Attribution
 

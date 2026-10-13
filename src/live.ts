@@ -10,7 +10,7 @@ export class PerplTradingStream {
   private retry = 0;
   private outbound = 0;
   private lastHeartbeat?: number;
-  private waiters: Array<{ resolve: () => void; reject: (error: Error) => void }> = [];
+  private waiters: Array<{ resolve: () => void; reject: (error: Error) => void; timer: NodeJS.Timeout }> = [];
   private admissions = new Map<number, Pending>();
   private outcomes = new Map<number, Pending>();
   private ping?: NodeJS.Timeout;
@@ -22,7 +22,22 @@ export class PerplTradingStream {
   ) {}
 
   start() { this.stopped = false; this.connect(); }
-  stop() { this.stopped = true; if (this.ping) clearInterval(this.ping); this.socket?.close(); }
+  stop() {
+    this.stopped = true;
+    if (this.ping) clearInterval(this.ping);
+    this.failPending(new Error("Perpl WebSocket stopped"));
+    this.socket?.close();
+  }
+
+  private failPending(error: Error) {
+    for (const waiter of this.waiters.splice(0)) { clearTimeout(waiter.timer); waiter.reject(error); }
+    for (const pending of [...this.admissions.values(), ...this.outcomes.values()]) {
+      clearTimeout(pending.timer);
+      pending.reject(error);
+    }
+    this.admissions.clear();
+    this.outcomes.clear();
+  }
 
   private connect() {
     if (this.connecting || this.ready || this.stopped) return;
@@ -36,8 +51,7 @@ export class PerplTradingStream {
       this.ready = false; this.connecting = false; this.lastHeartbeat = undefined;
       if (this.ping) clearInterval(this.ping);
       const error = new Error(`Perpl WebSocket closed (${event.code}${event.reason ? `: ${event.reason}` : ""})`);
-      for (const pending of [...this.admissions.values(), ...this.outcomes.values()]) { clearTimeout(pending.timer); pending.reject(error); }
-      this.admissions.clear(); this.outcomes.clear();
+      this.failPending(error);
       if (!this.stopped) setTimeout(() => { this.retry++; this.connect(); }, Math.min(60_000, 1000 * 2 ** Math.min(this.retry, 6)));
     };
   }
@@ -45,7 +59,7 @@ export class PerplTradingStream {
   private authenticated() {
     if (this.ready) return;
     this.ready = true; this.connecting = false; this.retry = 0;
-    for (const waiter of this.waiters.splice(0)) waiter.resolve();
+    for (const waiter of this.waiters.splice(0)) { clearTimeout(waiter.timer); waiter.resolve(); }
     this.ping = setInterval(() => { if (this.socket?.readyState === WebSocket.OPEN) this.socket.send(JSON.stringify({ mt: 1, t: Date.now() })); }, 30_000);
     this.ping.unref();
   }
@@ -69,7 +83,14 @@ export class PerplTradingStream {
   private async ensureReady() {
     if (this.ready && this.socket?.readyState === WebSocket.OPEN) return;
     this.connect();
-    await new Promise<void>((resolve, reject) => { const timer = setTimeout(() => reject(new Error("Perpl WebSocket authentication timed out")), 8_000); this.waiters.push({ resolve: () => { clearTimeout(timer); resolve(); }, reject }); });
+    await new Promise<void>((resolve, reject) => {
+      const waiter = { resolve, reject, timer: undefined as unknown as NodeJS.Timeout };
+      waiter.timer = setTimeout(() => {
+        this.waiters = this.waiters.filter(item => item !== waiter);
+        reject(new Error("Perpl WebSocket authentication timed out"));
+      }, 8_000);
+      this.waiters.push(waiter);
+    });
   }
 
   async submit(order: OrderSpec) {
@@ -77,8 +98,15 @@ export class PerplTradingStream {
     const sn = ++this.outbound || ++this.outbound;
     const admission = new Promise<any>((resolve, reject) => { const timer = setTimeout(() => { this.admissions.delete(sn); reject(new Error("Perpl did not acknowledge the order")); }, 5_000); this.admissions.set(sn, { resolve, reject, timer }); });
     const outcome = new Promise<any>((resolve, reject) => { const timer = setTimeout(() => { this.outcomes.delete(order.rq); reject(new Error("Order was accepted but execution status timed out")); }, 15_000); this.outcomes.set(order.rq, { resolve, reject, timer }); });
-    this.socket!.send(JSON.stringify({ mt: 22, sn, ...order }));
-    await admission;
-    return await outcome;
+    try {
+      this.socket!.send(JSON.stringify({ mt: 22, sn, ...order }));
+      const [, result] = await Promise.all([admission, outcome]);
+      return result;
+    } finally {
+      for (const [map, id] of [[this.admissions, sn], [this.outcomes, order.rq]] as const) {
+        const pending = map.get(id);
+        if (pending) { clearTimeout(pending.timer); map.delete(id); }
+      }
+    }
   }
 }

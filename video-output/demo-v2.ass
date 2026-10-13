@@ -1,0 +1,49 @@
+[Script Info]
+Title: TradePerpl Technical Demo Clean
+ScriptType: v4.00+
+PlayResX: 1920
+PlayResY: 1080
+WrapStyle: 2
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Eyebrow,Segoe UI Semibold,25,&H00FC5C7C,&H00FFFFFF,&H00080D18,&H00000000,-1,0,0,0,100,100,2,0,1,0,0,7,800,80,285,1
+Style: Title,Segoe UI Semibold,58,&H00FFFFFF,&H00FFFFFF,&H00080D18,&H00000000,-1,0,0,0,100,100,0,0,1,0,0,7,800,80,330,1
+Style: Body,Segoe UI,33,&H00D9C1B9,&H00FFFFFF,&H00080D18,&H00000000,0,0,0,0,100,100,0,0,1,0,0,7,800,110,430,1
+Style: Meta,Segoe UI Semibold,20,&H008D95AB,&H00FFFFFF,&H00080D18,&H00000000,-1,0,0,0,100,100,1,0,1,0,0,7,800,80,925,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.00,0:00:08.00,Eyebrow,,0,0,0,,{\fad(220,220)}01 / ACCOUNT
+Dialogue: 0,0:00:00.00,0:00:08.00,Title,,0,0,0,,{\fad(220,220)}START WITH LIVE CONTEXT
+Dialogue: 0,0:00:00.00,0:00:08.00,Body,,0,0,0,,{\fad(220,220)}Wallet, balance and current markets\Nappear in one message.
+Dialogue: 0,0:00:00.00,0:01:36.60,Meta,,0,0,0,,TRADEPERPL   •   PERPL API   •   MONAD MAINNET
+
+Dialogue: 0,0:00:08.00,0:00:14.00,Eyebrow,,0,0,0,,{\fad(220,220)}02 / ALERT
+Dialogue: 0,0:00:08.00,0:00:14.00,Title,,0,0,0,,{\fad(220,220)}/ALERT BTC 100000
+Dialogue: 0,0:00:08.00,0:00:14.00,Body,,0,0,0,,{\fad(220,220)}One command creates a price trigger.\NNo market picker. No extra flow.
+
+Dialogue: 0,0:00:14.00,0:00:27.00,Eyebrow,,0,0,0,,{\fad(220,220)}03 / NAVIGATION
+Dialogue: 0,0:00:14.00,0:00:27.00,Title,,0,0,0,,{\fad(220,220)}BACK TO THE MARKET
+Dialogue: 0,0:00:14.00,0:00:27.00,Body,,0,0,0,,{\fad(220,220)}Positions, orders, portfolio and alerts\Nstay one tap from the trading screen.
+
+Dialogue: 0,0:00:27.00,0:00:42.00,Eyebrow,,0,0,0,,{\fad(220,220)}04 / MARKET DATA
+Dialogue: 0,0:00:27.00,0:00:42.00,Title,,0,0,0,,{\fad(220,220)}CHART + LIVE ORDER BOOK
+Dialogue: 0,0:00:27.00,0:00:42.00,Body,,0,0,0,,{\fad(220,220)}Mark price, funding and liquidity load\Nbefore the order form becomes active.
+
+Dialogue: 0,0:00:42.00,0:00:59.00,Eyebrow,,0,0,0,,{\fad(220,220)}05 / ORDER BUILDER
+Dialogue: 0,0:00:42.00,0:00:59.00,Title,,0,0,0,,{\fad(220,220)}RISK LIVES IN THE TICKET
+Dialogue: 0,0:00:42.00,0:00:59.00,Body,,0,0,0,,{\fad(220,220)}Set leverage, size, order type,\Ntake-profit and stop-loss in one flow.
+
+Dialogue: 0,0:00:59.00,0:01:12.00,Eyebrow,,0,0,0,,{\fad(220,220)}06 / CONFIRMATION
+Dialogue: 0,0:00:59.00,0:01:12.00,Title,,0,0,0,,{\fad(220,220)}REVIEW BEFORE SUBMIT
+Dialogue: 0,0:00:59.00,0:01:12.00,Body,,0,0,0,,{\fad(220,220)}Entry, mark, margin, liquidation, fee,\NTP and SL are checked together.
+
+Dialogue: 0,0:01:12.00,0:01:22.00,Eyebrow,,0,0,0,,{\fad(220,220)}07 / LIVE EXECUTION
+Dialogue: 0,0:01:12.00,0:01:22.00,Title,,0,0,0,,{\fad(220,220)}PERPL REPORTS THE RESULT
+Dialogue: 0,0:01:12.00,0:01:22.00,Body,,0,0,0,,{\fad(220,220)}Orders, fills and open positions arrive\Nthrough Perpl's real-time connection.
+
+Dialogue: 0,0:01:22.00,0:01:36.60,Eyebrow,,0,0,0,,{\fad(220,220)}08 / CLOSE
+Dialogue: 0,0:01:22.00,0:01:36.60,Title,,0,0,0,,{\fad(220,220)}FINISH WITH A RECEIPT
+Dialogue: 0,0:01:22.00,0:01:36.60,Body,,0,0,0,,{\fad(220,220)}Exit, PnL, funding, fees and the\Ntransaction link return to Telegram.

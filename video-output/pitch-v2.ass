@@ -1,0 +1,45 @@
+[Script Info]
+Title: TradePerpl Pitch Clean
+ScriptType: v4.00+
+PlayResX: 1920
+PlayResY: 1080
+WrapStyle: 2
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Eyebrow,Segoe UI Semibold,25,&H00FC5C7C,&H00FFFFFF,&H00080D18,&H00000000,-1,0,0,0,100,100,2,0,1,0,0,7,800,80,285,1
+Style: Title,Segoe UI Semibold,58,&H00FFFFFF,&H00FFFFFF,&H00080D18,&H00000000,-1,0,0,0,100,100,0,0,1,0,0,7,800,80,330,1
+Style: Body,Segoe UI,33,&H00D9C1B9,&H00FFFFFF,&H00080D18,&H00000000,0,0,0,0,100,100,0,0,1,0,0,7,800,110,430,1
+Style: Meta,Segoe UI Semibold,20,&H008D95AB,&H00FFFFFF,&H00080D18,&H00000000,-1,0,0,0,100,100,1,0,1,0,0,7,800,80,925,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.00,0:00:07.00,Eyebrow,,0,0,0,,{\fad(220,220)}BUILT BY TIMUR
+Dialogue: 0,0:00:00.00,0:00:07.00,Title,,0,0,0,,{\fad(220,220)}TRADE PERPL FROM TELEGRAM
+Dialogue: 0,0:00:00.00,0:00:07.00,Body,,0,0,0,,{\fad(220,220)}A faster path from a market signal\Nto a reviewed trade.
+Dialogue: 0,0:00:00.00,0:01:22.90,Meta,,0,0,0,,TRADEPERPL   •   PERPL API   •   MONAD MAINNET
+
+Dialogue: 0,0:00:07.00,0:00:18.00,Eyebrow,,0,0,0,,{\fad(220,220)}THE GAP
+Dialogue: 0,0:00:07.00,0:00:18.00,Title,,0,0,0,,{\fad(220,220)}AN ALERT SHOULD LEAD TO ACTION
+Dialogue: 0,0:00:07.00,0:00:18.00,Body,,0,0,0,,{\fad(220,220)}Traders already watch markets in Telegram.\NExecution still lives somewhere else.
+
+Dialogue: 0,0:00:18.00,0:00:30.00,Eyebrow,,0,0,0,,{\fad(220,220)}01 / MARKET
+Dialogue: 0,0:00:18.00,0:00:30.00,Title,,0,0,0,,{\fad(220,220)}READ THE BOOK FIRST
+Dialogue: 0,0:00:18.00,0:00:30.00,Body,,0,0,0,,{\fad(220,220)}Mark price, funding and live liquidity\Narrive before order entry.
+
+Dialogue: 0,0:00:30.00,0:00:49.00,Eyebrow,,0,0,0,,{\fad(220,220)}02 / ORDER
+Dialogue: 0,0:00:30.00,0:00:49.00,Title,,0,0,0,,{\fad(220,220)}SET THE RISK UP FRONT
+Dialogue: 0,0:00:30.00,0:00:49.00,Body,,0,0,0,,{\fad(220,220)}Direction, leverage, size, type,\Ntake-profit and stop-loss stay together.
+
+Dialogue: 0,0:00:49.00,0:01:00.00,Eyebrow,,0,0,0,,{\fad(220,220)}03 / CONFIRMATION
+Dialogue: 0,0:00:49.00,0:01:00.00,Title,,0,0,0,,{\fad(220,220)}CHECK THE NUMBERS
+Dialogue: 0,0:00:49.00,0:01:00.00,Body,,0,0,0,,{\fad(220,220)}Entry, mark, margin, liquidation, fee,\NTP and SL are reviewed before sending.
+
+Dialogue: 0,0:01:00.00,0:01:10.00,Eyebrow,,0,0,0,,{\fad(220,220)}04 / LIVE STATE
+Dialogue: 0,0:01:00.00,0:01:10.00,Title,,0,0,0,,{\fad(220,220)}WAIT FOR THE REAL UPDATE
+Dialogue: 0,0:01:00.00,0:01:10.00,Body,,0,0,0,,{\fad(220,220)}TradePerpl follows Perpl orders, fills\Nand positions in real time.
+
+Dialogue: 0,0:01:10.00,0:01:22.90,Eyebrow,,0,0,0,,{\fad(220,220)}05 / POSITION
+Dialogue: 0,0:01:10.00,0:01:22.90,Title,,0,0,0,,{\fad(220,220)}CLOSE THE LOOP
+Dialogue: 0,0:01:10.00,0:01:22.90,Body,,0,0,0,,{\fad(220,220)}Cancel protection, close the position\Nand receive the final PnL in Telegram.

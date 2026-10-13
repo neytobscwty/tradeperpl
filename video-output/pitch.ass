@@ -1,0 +1,41 @@
+[Script Info]
+Title: TradePerpl Pitch
+ScriptType: v4.00+
+PlayResX: 1920
+PlayResY: 1080
+WrapStyle: 2
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Eyebrow,Segoe UI Semibold,25,&H00FC5C7C,&H00FFFFFF,&H00080D18,&H00000000,-1,0,0,0,100,100,2,0,1,0,0,7,790,90,286,1
+Style: Title,Segoe UI Semibold,58,&H00FFFFFF,&H00FFFFFF,&H00080D18,&H00000000,-1,0,0,0,100,100,0,0,1,0,0,7,790,90,330,1
+Style: Body,Segoe UI,33,&H00D9C1B9,&H00FFFFFF,&H00080D18,&H00000000,0,0,0,0,100,100,0,0,1,0,0,7,790,100,430,1
+Style: Meta,Segoe UI Semibold,21,&H008D95AB,&H00FFFFFF,&H00080D18,&H00000000,-1,0,0,0,100,100,1,0,1,0,0,7,790,90,930,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.00,0:00:09.00,Eyebrow,,0,0,0,,THE PITCH
+Dialogue: 0,0:00:00.00,0:00:09.00,Title,,0,0,0,,TRADEPERPL
+Dialogue: 0,0:00:00.00,0:00:09.00,Body,,0,0,0,,Perpl trading, inside Telegram.\NBuilt by Timur.
+Dialogue: 0,0:00:00.00,0:01:14.50,Meta,,0,0,0,,MOBILE-FIRST ACCESS   •   PERPL   •   MONAD
+
+Dialogue: 0,0:00:09.00,0:00:22.00,Eyebrow,,0,0,0,,THE GAP
+Dialogue: 0,0:00:09.00,0:00:22.00,Title,,0,0,0,,TRADING IS WEB-FIRST
+Dialogue: 0,0:00:09.00,0:00:22.00,Body,,0,0,0,,When markets move away from a desk,\Nevery extra step adds friction.\NMonitoring and risk control should travel.
+
+Dialogue: 0,0:00:22.00,0:00:36.00,Eyebrow,,0,0,0,,THE PRODUCT
+Dialogue: 0,0:00:22.00,0:00:36.00,Title,,0,0,0,,A TERMINAL IN TELEGRAM
+Dialogue: 0,0:00:22.00,0:00:36.00,Body,,0,0,0,,Markets, funding, charts, order books,\Nalerts, portfolio, orders and positions.\NOne focused workflow in a familiar chat.
+
+Dialogue: 0,0:00:36.00,0:00:50.00,Eyebrow,,0,0,0,,THE EXPERIENCE
+Dialogue: 0,0:00:36.00,0:00:50.00,Title,,0,0,0,,GUIDED, NOT OVERLOADED
+Dialogue: 0,0:00:36.00,0:00:50.00,Body,,0,0,0,,Choose direction, leverage and size.\NAdd take-profit and stop-loss.\NReview everything before confirmation.
+
+Dialogue: 0,0:00:50.00,0:01:04.00,Eyebrow,,0,0,0,,SAFE, REAL-TIME ACCESS
+Dialogue: 0,0:00:50.00,0:01:04.00,Title,,0,0,0,,BUILT ON PERPL + MONAD
+Dialogue: 0,0:00:50.00,0:01:04.00,Body,,0,0,0,,Revocable Perpl API keys cannot withdraw.\NLive API updates keep state current.\NTrades settle on Monad Mainnet.
+
+Dialogue: 0,0:01:04.00,0:01:14.50,Eyebrow,,0,0,0,,WHY TELEGRAM
+Dialogue: 0,0:01:04.00,0:01:14.50,Title,,0,0,0,,WHERE TRADERS ALREADY ARE
+Dialogue: 0,0:01:04.00,0:01:14.50,Body,,0,0,0,,Fast to open. Familiar on mobile.\NAvailable wherever traders communicate.\NTradePerpl turns alerts into action.

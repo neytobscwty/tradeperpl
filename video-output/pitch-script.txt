@@ -1,0 +1,9 @@
+Hi, I'm Timur, and I built TradePerpl.
+
+Perpl gives traders an onchain perpetual exchange on Monad, but its official experience is web-first. When you're away from a desk, checking markets, managing risk, or reacting to a position should not require navigating a full trading terminal.
+
+TradePerpl brings the essential workflow into Telegram: live markets and funding, charts and order books, price alerts, portfolio and positions, and guided order entry with leverage, take profit, and stop loss.
+
+Trades use revocable Perpl API keys that cannot withdraw funds. Orders and position updates arrive through Perpl's real-time API, while settlement happens on Monad Mainnet.
+
+I built TradePerpl to turn Telegram from a notification channel into a focused trading interface: fast to open, familiar on mobile, and available wherever traders already communicate.
