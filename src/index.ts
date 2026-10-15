@@ -147,8 +147,8 @@ function orderSetupKeyboard(d: TradeDraft, steps?: number[], groupIndex = 0, boo
 function orderSetupText(d: TradeDraft, prompt = "") {
   const margin = d.sizeUsd && d.leverage ? d.sizeUsd / d.leverage : undefined;
   const side = d.side === "long" ? "🟢 LONG" : "🔴 SHORT";
-  const heading = d.postOnly ? "[POST-ONLY] New order" : d.orderType ? `[${d.orderType.toUpperCase()}] New order` : "New order";
-  const summary = [side, d.symbol ? marketEmoji(d.symbol) : "", d.symbol ?? "", d.sizeUsd ? usdRange(d.sizeUsd) : "", d.leverage ? `${d.leverage}x` : ""].filter(Boolean).join(" ");
+  const heading = "New order";
+  const summary = [side, d.symbol ? marketEmoji(d.symbol) : "", d.symbol ?? ""].filter(Boolean).join(" ");
   const entry = d.markPrice;
   const coinSize = d.sizeUsd && entry ? d.sizeUsd / entry : 0;
   const direction = d.side === "long" ? 1 : -1;
@@ -156,6 +156,9 @@ function orderSetupText(d: TradeDraft, prompt = "") {
   const slPnl = d.stopLoss && entry ? (d.stopLoss - entry) * coinSize * direction : undefined;
   return [
     `<b>${heading}</b>`, "", summary,
+    d.orderType ? `<b>Type:</b> ${d.orderType === "market" ? "Market" : "Limit"}${d.postOnly ? " (post-only)" : ""}` : undefined,
+    d.sizeUsd ? `<b>Value:</b> ${usdRange(d.sizeUsd)}` : undefined,
+    d.leverage ? `<b>Leverage:</b> ${d.leverage}x` : undefined,
     margin ? `💰 Required margin: ${usdRange(margin)}` : undefined,
     d.availableMargin !== undefined ? `💵 Available margin: ${usdRange(d.availableMargin)}` : undefined,
     d.orderType === "limit" && d.limitPrice ? `📍 Limit price: ${money(d.limitPrice)}` : undefined,
@@ -171,13 +174,14 @@ function confirmationText(d: TradeDraft, market: Market, marketPrice: number, ma
   const entry = d.orderType === "market" ? marketPrice : d.limitPrice!;
   const size = notional / entry;
   const risk = orderRisk({ entry, size, margin, maintenanceMargin: maintenanceRateOf(market), side: d.side!, takeProfit: d.takeProfit, stopLoss: d.stopLoss });
-  const type = `${d.orderType === "market" ? "Market" : "Limit"}${d.postOnly ? " · Post-only" : ""}`;
+  const type = `${d.orderType === "market" ? "Market" : "Limit"}${d.postOnly ? " (post-only)" : ""}`;
   return [
     "<b>Confirm order</b>", "",
-    `${marketEmoji(d.symbol!)} <b>${d.symbol}</b>  ${d.side === "long" ? "🟢 <b>LONG</b>" : "🔴 <b>SHORT</b>"} ${leverage}x · ${usdRange(notional)}`, "",
+    `${d.side === "long" ? "🟢 <b>LONG</b>" : "🔴 <b>SHORT</b>"} ${marketEmoji(d.symbol!)} <b>${d.symbol}</b>`, "",
     `<b>Type:</b> ${type}`,
-    `<b>Entry:</b> ${money(entry)}`,
-    `<b>Mark:</b> ${money(markPrice)}`,
+    `<b>Value:</b> ${usdRange(notional)}`,
+    `<b>Leverage:</b> ${leverage}x`,
+    `<b>Entry:</b> ${money(entry)}  <b>Mark:</b> ${money(markPrice)}`,
     `<b>Margin:</b> ${usdRange(margin)}`,
     `<b>Liquidation:</b> ${money(risk.liquidation)}`,
     d.previewFee !== undefined ? `<b>Fee:</b> ${feeMoney(d.previewFee)}` : undefined,
@@ -497,12 +501,16 @@ async function filledOrderText(order: Order, protections: Order[] = []) {
   const txid = order.at?.txid ? `0x${String(order.at.txid).replace(/^0x/, "")}` : "";
   const transaction = txid ? `<a href="https://monadscan.com/tx/${escape(txid)}">Transaction ↗</a>` : "";
   return [
-    `<b>✅ [${type.toUpperCase()}] Position opened</b>`,
+    "<b>✅ Position opened</b>",
     "",
-    `${sideIcon} ${side} ${market ? marketEmoji(symbol) : ""} ${symbol} ${usdRange(size * price)} ${order.lv / 100}x`,
-    `🔹 Entry: ${money(price)}`,
+    `${sideIcon} <b>${side}</b> ${market ? marketEmoji(symbol) : ""} <b>${symbol}</b>`,
+    "",
+    `<b>Type:</b> ${type}`,
+    `<b>Value:</b> ${usdRange(size * price)}`,
+    `<b>Leverage:</b> ${order.lv / 100}x`,
+    `<b>Entry:</b> ${money(price)}`,
     ...protections.sort((a, b) => protectionKind(a).localeCompare(protectionKind(b))).map(item => `${protectionKind(item) === "TP" ? "🎯" : "🛡"} ${protectionKind(item)}: ${money(scaled(item.tp!, priceDecimals))}`),
-    fee ? `🧾 Fee: ${feeMoney(fee)}` : undefined,
+    fee ? `<b>Fee:</b> ${feeMoney(fee)}` : undefined,
     transaction,
   ].filter(Boolean).join("\n");
 }
@@ -536,21 +544,24 @@ async function positionText(position: Position, event = false, relatedOrder?: Or
     const txid = position.at?.txid ? `0x${String(position.at.txid).replace(/^0x/, "")}` : "";
     const transaction = txid ? `<a href="https://monadscan.com/tx/${escape(txid)}">Transaction ↗</a>` : "";
     const closeType = relatedOrder?.p ? "Limit" : "Market";
-    const closeTitle = position.sr === 19 ? "❌ [LIQUIDATION] Position closed ⚠️" : relatedOrder?.tp ? `❌ [${protectionKind(relatedOrder)}] Position closed ${protectionKind(relatedOrder) === "TP" ? "🎯" : "🛡"}` : `❌ [${closeType.toUpperCase()}] Position closed`;
+    const closeTitle = position.sr === 19 ? "⚠️ Position liquidated" : "✅ Position closed";
     return [`<b>${closeTitle}</b>`,
       "",
-      `${sideIcon} ${side} ${marketEmoji(name)} ${name} ${usdRange(value)} ${position.lv / 100}x`,
-      exit ? `🔹 Entry: ${money(entry)}` : `🔹 Entry: ${money(entry)}`,
-      exit ? `🔹 Exit: ${money(eventPrice)}` : "",
-      exit ? `${pnl >= 0 ? "📈" : "📉"} PnL: ${pnlText}` : "",
-      `Funding: ${signedSmallMoney(funding)}  Fee: ${feeMoney(fees)}`,
+      `${sideIcon} <b>${side}</b> ${marketEmoji(name)} <b>${name}</b>`, "",
+      `<b>Type:</b> ${position.sr === 19 ? "Liquidation" : relatedOrder?.tp ? protectionKind(relatedOrder) : closeType}`,
+      `<b>Value:</b> ${usdRange(value)}`,
+      `<b>Leverage:</b> ${position.lv / 100}x`,
+      `<b>Entry:</b> ${money(entry)}${exit ? `  <b>Exit:</b> ${money(eventPrice)}` : ""}`,
+      exit ? `<b>PnL:</b> ${pnlText}` : "",
+      `<b>Funding:</b> ${signedSmallMoney(funding)}`,
+      `<b>Fee:</b> ${feeMoney(fees)}`,
       transaction].filter(line => line !== undefined && line !== null).join("\n");
   }
   const roe = collateral ? unrealized / collateral * 100 : 0, maintenance = market ? maintenanceRateOf(market) : 0.05;
   const liqMove = notional ? Math.max(0, (collateral - notional * maintenance) / (size || 1)) : 0;
   const liquidation = position.sd === 1 ? Math.max(0, entry - liqMove) : entry + liqMove;
   const tp = protections.find(order => protectionKind(order) === "TP"), sl = protections.find(order => protectionKind(order) === "SL"), protectionLine = [tp ? `🎯 TP ${money(scaled(tp.tp!, pd))}` : "", sl ? `🛡 SL ${money(scaled(sl.tp!, pd))}` : ""].filter(Boolean).join(" · ");
-  return [event ? `<b>${name} ${eventName(position.sr).toLowerCase()}</b>` : "", `${marketEmoji(name)} <b>${name}</b>  ${sideIcon} <b>${side}</b> ${position.lv / 100}x · ${money(notional)}`, protectionLine, `${unrealized >= 0 ? "🟢" : "🔴"} <b>PnL:</b> ${unrealized >= 0 ? "+" : ""}${money(unrealized)}  ${signed(roe)}`, `↳ <b>Entry:</b> ${money(entry)}`, `↳ <b>Mark:</b> ${money(mark)}`, `💰 <b>Margin:</b> ${money(Math.abs(collateral))}`, `⚠️ <b>Liq.:</b> ${money(liquidation)}`, market ? `💸 <b>Funding:</b> ${positionFundingText(market)}` : "", fees ? `🧾 <b>Fee:</b> ${money(fees)}` : ""].filter(Boolean).join("\n");
+  return [event ? `<b>${name} ${eventName(position.sr).toLowerCase()}</b>` : "", `${sideIcon} <b>${side}</b> ${marketEmoji(name)} <b>${name}</b>`, `<b>Value:</b> ${usdRange(notional)}`, `<b>Leverage:</b> ${position.lv / 100}x`, `<b>Entry:</b> ${money(entry)}  <b>Mark:</b> ${money(mark)}`, protectionLine, `${unrealized >= 0 ? "🟢" : "🔴"} <b>PnL:</b> ${unrealized >= 0 ? "+" : ""}${money(unrealized)}  ${signed(roe)}`, `<b>Margin:</b> ${money(Math.abs(collateral))}`, `<b>Liquidation:</b> ${money(liquidation)}`, market ? `<b>Funding:</b> ${positionFundingText(market)}` : "", fees ? `<b>Fee:</b> ${money(fees)}` : ""].filter(Boolean).join("\n");
 }
 
 async function notifyPosition(chatId: number, position: Position) {
@@ -1213,7 +1224,7 @@ bot.callbackQuery("trade:confirm", async ctx => {
     if (filled) {
       if (protectionFailures.length) await ctx.reply(`<b>Could not add protection</b>\n\n${protectionFailures.join("\n")}`, { parse_mode: "HTML" });
     } else {
-      await ctx.reply(`<b>${outcome.st === 2 ? "Limit order placed ✅" : "Order update received"}</b>\n\n${d.side.toUpperCase()} ${d.symbol} - ${d.leverage}x - ${`${d.orderType.toUpperCase()}${d.postOnly ? " · POST-ONLY" : ""}`}\nStatus: ${outcome.st === 2 ? "Open" : `Perpl status ${outcome.st}`}${protection.length ? `\n${protection.join("\n")}` : ""}`, { parse_mode: "HTML" });
+      await ctx.reply(`<b>${outcome.st === 2 ? "✅ Order placed" : "Order update received"}</b>\n\n${d.side === "long" ? "🟢" : "🔴"} <b>${d.side.toUpperCase()}</b> ${marketEmoji(d.symbol)} <b>${d.symbol}</b>\n\n<b>Type:</b> ${d.orderType === "market" ? "Market" : "Limit"}${d.postOnly ? " (post-only)" : ""}\n<b>Value:</b> ${usdRange(notional)}\n<b>Leverage:</b> ${d.leverage}x\n<b>Entry:</b> ${money(executionPrice)}\n<b>Status:</b> ${outcome.st === 2 ? "Open" : `Perpl status ${outcome.st}`}${protection.length ? `\n${protection.join("\n")}` : ""}`, { parse_mode: "HTML" });
       await sendMainMenu(chatId);
     }
   } catch (error) {
