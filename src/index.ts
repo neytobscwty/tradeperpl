@@ -162,8 +162,8 @@ function orderSetupText(d: TradeDraft, prompt = "") {
     margin ? `💰 Required margin: ${usdRange(margin)}` : undefined,
     d.availableMargin !== undefined ? `💵 Available margin: ${usdRange(d.availableMargin)}` : undefined,
     d.orderType === "limit" && d.limitPrice ? `📍 Limit price: ${money(d.limitPrice)}` : undefined,
-    d.takeProfit ? `🎯 TP: ${money(d.takeProfit)}${tpPnl !== undefined ? ` (${signedSmallMoney(tpPnl)})` : ""}` : undefined,
-    d.stopLoss ? `🛡 SL: ${money(d.stopLoss)}${slPnl !== undefined ? ` (${signedSmallMoney(slPnl)})` : ""}` : undefined,
+    d.takeProfit ? `🎯 Take profit: ${money(d.takeProfit)}${tpPnl !== undefined ? ` (${signedSmallMoney(tpPnl)})` : ""}` : undefined,
+    d.stopLoss ? `🛡 Stop loss: ${money(d.stopLoss)}${slPnl !== undefined ? ` (${signedSmallMoney(slPnl)})` : ""}` : undefined,
     prompt ? `\n${prompt}` : undefined,
     !d.leverage || !d.sizeUsd || !d.orderType ? "\nChoose leverage, size and type." : undefined,
   ].filter(Boolean).join("\n");
@@ -185,8 +185,8 @@ function confirmationText(d: TradeDraft, market: Market, marketPrice: number, ma
     `<b>Margin:</b> ${usdRange(margin)}`,
     `<b>Liquidation:</b> ${money(risk.liquidation)}`,
     d.previewFee !== undefined ? `<b>Fee:</b> ${feeMoney(d.previewFee)}` : undefined,
-    d.takeProfit ? `🎯 <b>TP:</b> ${money(d.takeProfit)} (${signedSmallMoney(risk.takeProfitPnl!)})` : undefined,
-    d.stopLoss ? `🛡 <b>SL:</b> ${money(d.stopLoss)} (${signedSmallMoney(risk.stopLossPnl!)})` : undefined,
+    d.takeProfit ? `🎯 <b>Take profit:</b> ${money(d.takeProfit)} (${signedSmallMoney(risk.takeProfitPnl!)})` : undefined,
+    d.stopLoss ? `🛡 <b>Stop loss:</b> ${money(d.stopLoss)} (${signedSmallMoney(risk.stopLossPnl!)})` : undefined,
   ].filter(line => line !== undefined).join("\n");
 }
 async function showOrderSetup(ctx: any, prompt = "") { const chatId = ctx.chat!.id, d = tradeKey(chatId); if (!d.symbol || !d.side) return edit(ctx, "This order has expired. Open a market again.", new InlineKeyboard().text({ text: "Markets", style: "primary" }, "trade:start").row().text({ text: "Menu", style: "primary" }, "home")); d.menuMessageId = ctx.callbackQuery?.message?.message_id ?? d.menuMessageId; const view = liveBooks.get(chatId), card = view?.card; if (view && card && view.messageId === d.menuMessageId) { d.markPrice = card.price; d.triggerMarkPrice = card.mark; return edit(ctx, `${card.text}\n\n${orderSetupText(d, prompt)}`, orderSetupKeyboard(d, card.steps, card.groupIndex)); } return edit(ctx, orderSetupText(d, prompt), orderSetupKeyboard(d)); }
@@ -491,6 +491,7 @@ async function cancelProtection(stream: PerplTradingStream, client: PerplAccount
   throw new Error(`${protectionKind(order)} cancellation was not confirmed by Perpl`);
 }
 const eventName = (reason: number) => ({ 13: "Position closed", 14: "Position reduced", 15: "Position deleveraged", 17: "Position increased", 18: "Position inverted", 19: "Position liquidated", 21: "Position opened", 22: "Position unwound" } as Record<number, string>)[reason] ?? "Position updated";
+const protectionLabel = (kind: "TP" | "SL") => kind === "TP" ? "Take profit" : "Stop loss";
 
 async function filledOrderText(order: Order, protections: Order[] = []) {
   const market = (await perpl.markets()).find(item => item.id === order.mkt);
@@ -509,7 +510,7 @@ async function filledOrderText(order: Order, protections: Order[] = []) {
     `<b>Value:</b> ${usdRange(size * price)}`,
     `<b>Leverage:</b> ${order.lv / 100}x`,
     `<b>Entry:</b> ${money(price)}`,
-    ...protections.sort((a, b) => protectionKind(a).localeCompare(protectionKind(b))).map(item => `${protectionKind(item) === "TP" ? "🎯" : "🛡"} ${protectionKind(item)}: ${money(scaled(item.tp!, priceDecimals))}`),
+    ...protections.sort((a, b) => protectionKind(a).localeCompare(protectionKind(b))).map(item => `${protectionKind(item) === "TP" ? "🎯" : "🛡"} ${protectionLabel(protectionKind(item))}: ${money(scaled(item.tp!, priceDecimals))}`),
     fee ? `<b>Fee:</b> ${feeMoney(fee)}` : undefined,
     transaction,
   ].filter(Boolean).join("\n");
@@ -548,7 +549,7 @@ async function positionText(position: Position, event = false, relatedOrder?: Or
     return [`<b>${closeTitle}</b>`,
       "",
       `${sideIcon} <b>${side}</b> ${marketEmoji(name)} <b>${name}</b>`, "",
-      `<b>Type:</b> ${position.sr === 19 ? "Liquidation" : relatedOrder?.tp ? protectionKind(relatedOrder) : closeType}`,
+      `<b>Type:</b> ${position.sr === 19 ? "Liquidation" : relatedOrder?.tp ? protectionLabel(protectionKind(relatedOrder)) : closeType}`,
       `<b>Value:</b> ${usdRange(value)}`,
       `<b>Leverage:</b> ${position.lv / 100}x`,
       `<b>Entry:</b> ${money(entry)}${exit ? `  <b>Exit:</b> ${money(eventPrice)}` : ""}`,
@@ -560,7 +561,7 @@ async function positionText(position: Position, event = false, relatedOrder?: Or
   const roe = collateral ? unrealized / collateral * 100 : 0, maintenance = market ? maintenanceRateOf(market) : 0.05;
   const liqMove = notional ? Math.max(0, (collateral - notional * maintenance) / (size || 1)) : 0;
   const liquidation = position.sd === 1 ? Math.max(0, entry - liqMove) : entry + liqMove;
-  const tp = protections.find(order => protectionKind(order) === "TP"), sl = protections.find(order => protectionKind(order) === "SL"), protectionLine = [tp ? `🎯 TP ${money(scaled(tp.tp!, pd))}` : "", sl ? `🛡 SL ${money(scaled(sl.tp!, pd))}` : ""].filter(Boolean).join(" · ");
+  const tp = protections.find(order => protectionKind(order) === "TP"), sl = protections.find(order => protectionKind(order) === "SL"), protectionLine = [tp ? `🎯 Take profit: ${money(scaled(tp.tp!, pd))}` : "", sl ? `🛡 Stop loss: ${money(scaled(sl.tp!, pd))}` : ""].filter(Boolean).join("\n");
   return [event ? `<b>${name} ${eventName(position.sr).toLowerCase()}</b>` : "", `${sideIcon} <b>${side}</b> ${marketEmoji(name)} <b>${name}</b>`, `<b>Value:</b> ${usdRange(notional)}`, `<b>Leverage:</b> ${position.lv / 100}x`, `<b>Entry:</b> ${money(entry)}  <b>Mark:</b> ${money(mark)}`, protectionLine, `${unrealized >= 0 ? "🟢" : "🔴"} <b>PnL:</b> ${unrealized >= 0 ? "+" : ""}${money(unrealized)}  ${signed(roe)}`, `<b>Margin:</b> ${money(Math.abs(collateral))}`, `<b>Liquidation:</b> ${money(liquidation)}`, market ? `<b>Funding:</b> ${positionFundingText(market)}` : "", fees ? `<b>Fee:</b> ${money(fees)}` : ""].filter(Boolean).join("\n");
 }
 
@@ -670,7 +671,7 @@ async function ordersCard(chatId: number) {
   const openPositionIds = new Set(positions.filter(position => position.st === 1).map(position => position.pid));
   const active = openOrders.filter(o => [1, 2, 3, 8, 9].includes(o.st) && (!o.lp || openPositionIds.has(o.lp)));
   if (!active.length) return `${menuEmoji("orders")} <b>ORDERS</b>\n\nNo active orders.`;
-  return `${menuEmoji("orders")} <b>ACTIVE ORDERS - ${active.length}</b>\n\n${active.map(o => { const market = markets.find(m => m.id === o.mkt), symbol = market ? marketSymbol(market) : `#${o.mkt}`, size = market ? scaled(o.os, market.config.size_decimals) : o.os, rawPrice = market && o.p ? scaled(o.p, market.config.price_decimals) : 0, triggerPrice = market && o.tp ? scaled(o.tp, market.config.price_decimals) : 0, mark = market && states[String(market.id)] ? priceOf(market, states[String(market.id)]) : 0, type = o.tp ? protectionKind(o) : rawPrice ? "Limit" : "Market", side = o.t === 1 || o.t === 3 ? "🟢 <b>LONG</b>" : "🔴 <b>SHORT</b>"; return `${side} ${market ? marketEmoji(symbol) : ""} <b>${symbol}</b>\n\n<b>Type:</b> ${type}\n<b>Value:</b> ${usdRange(size * (rawPrice || triggerPrice || mark))}\n<b>Leverage:</b> ${o.lv / 100}x\n${triggerPrice ? `<b>Trigger:</b> ${money(triggerPrice)}` : `<b>Entry:</b> ${rawPrice ? money(rawPrice) : "Market"}`}\n<b>Status:</b> ${orderStatus(o.st)}`; }).join("\n\n")}`;
+  return `${menuEmoji("orders")} <b>ACTIVE ORDERS - ${active.length}</b>\n\n${active.map(o => { const market = markets.find(m => m.id === o.mkt), symbol = market ? marketSymbol(market) : `#${o.mkt}`, size = market ? scaled(o.os, market.config.size_decimals) : o.os, rawPrice = market && o.p ? scaled(o.p, market.config.price_decimals) : 0, triggerPrice = market && o.tp ? scaled(o.tp, market.config.price_decimals) : 0, mark = market && states[String(market.id)] ? priceOf(market, states[String(market.id)]) : 0, type = o.tp ? protectionLabel(protectionKind(o)) : rawPrice ? "Limit" : "Market", side = o.t === 1 || o.t === 3 ? "🟢 <b>LONG</b>" : "🔴 <b>SHORT</b>"; return `${side} ${market ? marketEmoji(symbol) : ""} <b>${symbol}</b>\n\n<b>Type:</b> ${type}\n<b>Value:</b> ${usdRange(size * (rawPrice || triggerPrice || mark))}\n<b>Leverage:</b> ${o.lv / 100}x\n${triggerPrice ? `<b>Trigger:</b> ${money(triggerPrice)}` : `<b>Entry:</b> ${rawPrice ? money(rawPrice) : "Market"}`}\n<b>Status:</b> ${orderStatus(o.st)}`; }).join("\n\n")}`;
 }
 
 async function ordersView(chatId: number) {
@@ -1218,8 +1219,8 @@ bot.callbackQuery("trade:confirm", async ctx => {
     for (const [kind, trigger] of [["tp", d.takeProfit], ["sl", d.stopLoss]] as const) {
       if (!trigger) continue;
       const triggerOrder = triggerCloseOrder({ rq: rq + (kind === "tp" ? 1 : 2), market: market.id, account: account.id, side: d.side, size, leverage: d.leverage, triggerPrice: Math.round(trigger * 10 ** market.config.price_decimals), kind, linkedPosition: linkedPosition?.pid, linkedRequest: linkedPosition ? undefined : rq });
-      try { const placed = await submitProtection(liveFor(chatId, saved.credentials), client, triggerOrder); protection.push(`${kind.toUpperCase()} ${money(trigger)} ${placed.pending ? "· Pending ✅" : "✅"}`); }
-      catch (error) { protection.push(`${kind.toUpperCase()} ${money(trigger)} failed: ${escape(error instanceof Error ? error.message : error)}`); }
+      try { const placed = await submitProtection(liveFor(chatId, saved.credentials), client, triggerOrder); protection.push(`${kind === "tp" ? "🎯 Take profit" : "🛡 Stop loss"}: ${money(trigger)} ${placed.pending ? "(pending) ✅" : "✅"}`); }
+      catch (error) { protection.push(`${kind === "tp" ? "Take profit" : "Stop loss"} ${money(trigger)} failed: ${escape(error instanceof Error ? error.message : error)}`); }
     }
     if (protection.length) { try { await baselineProtections(chatId, client); } catch {} }
     drafts.delete(chatId);
