@@ -8,7 +8,7 @@ import { amount, eventId, orderEventId, PerplAccountClient, type Order, type Ord
 import { compact, marketSymbol, money, PerplClient, scaled, type BookResponse, type Candle, type Market, type MarketState } from "./perpl.js";
 import { PerplTradingStream } from "./live.js";
 import { cancelOrder, closeOrder, closeSize, MIN_SCALED_ORDER_SIZE, openOrder, scaledOrderSize, triggerCloseOrder } from "./orders.js";
-import { closedPositionNotional, freshEvents, settledPnl, mainMenu, orderRisk, positionCloseOrder, protectionKind } from "./ui.js";
+import { closedPositionNotional, freshEvents, settledPnl, mainMenu, orderRisk, orderStatus, positionCloseOrder, protectionKind } from "./ui.js";
 import { candleChartPng } from "./chart.js";
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -544,7 +544,7 @@ async function positionText(position: Position, event = false, relatedOrder?: Or
     const txid = position.at?.txid ? `0x${String(position.at.txid).replace(/^0x/, "")}` : "";
     const transaction = txid ? `<a href="https://monadscan.com/tx/${escape(txid)}">Transaction ↗</a>` : "";
     const closeType = relatedOrder?.p ? "Limit" : "Market";
-    const closeTitle = position.sr === 19 ? "⚠️ Position liquidated" : "✅ Position closed";
+    const closeTitle = position.sr === 19 ? "⚠️ Position liquidated" : position.sr === 14 ? "✅ Position reduced" : position.sr === 15 ? "⚠️ Position deleveraged" : position.sr === 22 ? "✅ Position unwound" : "✅ Position closed";
     return [`<b>${closeTitle}</b>`,
       "",
       `${sideIcon} <b>${side}</b> ${marketEmoji(name)} <b>${name}</b>`, "",
@@ -670,7 +670,7 @@ async function ordersCard(chatId: number) {
   const openPositionIds = new Set(positions.filter(position => position.st === 1).map(position => position.pid));
   const active = openOrders.filter(o => [1, 2, 3, 8, 9].includes(o.st) && (!o.lp || openPositionIds.has(o.lp)));
   if (!active.length) return `${menuEmoji("orders")} <b>ORDERS</b>\n\nNo active orders.`;
-  return `${menuEmoji("orders")} <b>ACTIVE ORDERS - ${active.length}</b>\n\n${active.map(o => { const market = markets.find(m => m.id === o.mkt), symbol = market ? marketSymbol(market) : `#${o.mkt}`, size = market ? scaled(o.os, market.config.size_decimals) : o.os, rawPrice = market && o.p ? scaled(o.p, market.config.price_decimals) : 0, triggerPrice = market && o.tp ? scaled(o.tp, market.config.price_decimals) : 0, mark = market && states[String(market.id)] ? priceOf(market, states[String(market.id)]) : 0, price = rawPrice ? money(rawPrice) : "Market", trigger = triggerPrice ? money(triggerPrice) : "", side = o.t === 1 ? "🟢 LONG" : o.t === 2 ? "🔴 SHORT" : `${protectionKind(o) === "TP" ? "🎯" : "🛡"} ${protectionKind(o)}`; return `${market ? marketEmoji(symbol) : ""} <b>${symbol}</b>  ${side}\n📦 <b>Size:</b> ${usdRange(size * (rawPrice || triggerPrice || mark))}\n${trigger ? `${protectionKind(o) === "TP" ? "🎯" : "🛡"} <b>Trigger:</b> ${trigger}` : `💵 <b>Price:</b> ${price}`}`; }).join("\n\n")}`;
+  return `${menuEmoji("orders")} <b>ACTIVE ORDERS - ${active.length}</b>\n\n${active.map(o => { const market = markets.find(m => m.id === o.mkt), symbol = market ? marketSymbol(market) : `#${o.mkt}`, size = market ? scaled(o.os, market.config.size_decimals) : o.os, rawPrice = market && o.p ? scaled(o.p, market.config.price_decimals) : 0, triggerPrice = market && o.tp ? scaled(o.tp, market.config.price_decimals) : 0, mark = market && states[String(market.id)] ? priceOf(market, states[String(market.id)]) : 0, type = o.tp ? protectionKind(o) : rawPrice ? "Limit" : "Market", side = o.t === 1 || o.t === 3 ? "🟢 <b>LONG</b>" : "🔴 <b>SHORT</b>"; return `${side} ${market ? marketEmoji(symbol) : ""} <b>${symbol}</b>\n\n<b>Type:</b> ${type}\n<b>Value:</b> ${usdRange(size * (rawPrice || triggerPrice || mark))}\n<b>Leverage:</b> ${o.lv / 100}x\n${triggerPrice ? `<b>Trigger:</b> ${money(triggerPrice)}` : `<b>Entry:</b> ${rawPrice ? money(rawPrice) : "Market"}`}\n<b>Status:</b> ${orderStatus(o.st)}`; }).join("\n\n")}`;
 }
 
 async function ordersView(chatId: number) {
@@ -910,7 +910,7 @@ bot.callbackQuery(/^close:ask:(\d+)$/, async ctx => {
   const kb = new InlineKeyboard();
   if (closeSize(p.s, 50) >= 1) kb.text("50%", `close:confirm:${pid}:50`);
   kb.text("100%", `close:confirm:${pid}:100`).text("Custom size", `close:custom:${pid}`).row().text("Back", "positions");
-  await edit(ctx, `<b>Close ${marketSymbol(m)} ${p.sd === 1 ? "🟢 Long" : "🔴 Short"}</b>\nSize ${coinAmount(scaled(p.s, m.config.size_decimals), m.config.size_decimals)} ${marketSymbol(m)}\n\nChoose how much to close:`, kb);
+  await edit(ctx, `<b>Close position</b>\n\n${p.sd === 1 ? "🟢 <b>LONG</b>" : "🔴 <b>SHORT</b>"} ${marketEmoji(marketSymbol(m))} <b>${marketSymbol(m)}</b>\n\n<b>Value:</b> ${usdRange(scaled(p.s, m.config.size_decimals) * scaled(p.ep, m.config.price_decimals))}\n<b>Leverage:</b> ${p.lv / 100}x\n<b>Size:</b> ${coinAmount(scaled(p.s, m.config.size_decimals), m.config.size_decimals)} ${marketSymbol(m)}\n\nChoose how much to close:`, kb);
 });
 bot.callbackQuery(/^close:custom:(\d+)$/, async ctx => {
   await ctx.answerCallbackQuery(); const saved = await users.get(ctx.chat!.id); if (!saved) return;
@@ -943,7 +943,7 @@ bot.callbackQuery(/^close:confirm:(\d+):(50|100|custom)$/, async ctx => {
   closesInFlight.add(lock);
   try {
     const client = accountClient(saved.credentials);
-    const [wallet, positions] = await Promise.all([client.wallet(), client.positions()]);
+    const [wallet, positions, markets] = await Promise.all([client.wallet(), client.positions(), perpl.markets()]);
     const position = positions.find(x => x.pid === positionId && x.st === 1);
     const account = wallet.as?.find(x => x.id === position?.acc);
     if (!position || !account) throw new Error("Position is already closed");
@@ -956,7 +956,12 @@ bot.callbackQuery(/^close:confirm:(\d+):(50|100|custom)$/, async ctx => {
     const outcome = await submitOrder(liveFor(chatId, saved.credentials), client, order);
     const filled = outcome.st === 4 || outcome.st === 10;
     closeDrafts.delete(chatId);
-    await edit(ctx, filled ? "✅ Close filled" : "Close submitted", new InlineKeyboard());
+    const market = markets.find(item => item.id === position.mkt);
+    const symbol = market ? marketSymbol(market) : `Market ${position.mkt}`;
+    const size = market ? scaled(order.s, market.config.size_decimals) : 0;
+    const price = market && outcome.fp ? scaled(outcome.fp, market.config.price_decimals) : market ? scaled(position.ep, market.config.price_decimals) : 0;
+    const partial = order.s < position.s;
+    await edit(ctx, `<b>${filled ? partial ? "✅ Position reduced" : "✅ Close filled" : "Close submitted"}</b>\n\n${position.sd === 1 ? "🟢 <b>LONG</b>" : "🔴 <b>SHORT</b>"} ${marketEmoji(symbol)} <b>${symbol}</b>\n\n<b>Type:</b> Market\n<b>Value:</b> ${usdRange(size * price)}\n<b>Leverage:</b> ${position.lv / 100}x\n<b>Status:</b> ${filled ? "Filled" : "Submitted"}`, new InlineKeyboard());
   } catch (error) {
     await edit(ctx, `<b>Close was not confirmed</b>\n\n${escape(error instanceof Error ? error.message : error)}\n\nCheck Positions and Orders before retrying.`, new InlineKeyboard().text("Positions", "positions").text("Orders", "orders").row().text({ text: "Menu", style: "primary" }, "home"));
   } finally {
